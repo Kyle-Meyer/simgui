@@ -1,0 +1,57 @@
+ok so first things first, gonna need to make sure that you have 
+	OpenGL installed
+		will be installed under /usr/include/GL
+	GLFW installed
+		will be installed under /usr/include/GLFW
+
+so YOU CAN use .o's to compile .wasms, so we will compile a few imgui .o's
+	emcc -c imgui/imgui.cpp -I imgui -o imgui/imgui.o
+	emcc -c imgui/imgui_draw.cpp -I imgui -o imgui/imgui_draw.o
+	emcc -c imgui/imgui_widgets.cpp -I imgui -o imgui/imgui_widgets.o
+
+we will then compile some of the dependencies from open GL and GLFW as .o's
+	emcc -c imgui/backends/imgui_impl_glfw.cpp -I imgui -I /usr/include/GLFW -o imgui/imgui_impl_glfw.o
+	emcc -c imgui/backends/imgui_impl_opengl3.cpp -I imgui -I /usr/include/GL -o imgui/imgui_impl_opengl3.o
+
+lastly we will compile our example
+	emcc -c src/example.cpp -I imgui -I /usr/include/GLFW -o src/example.o
+
+and then we will bring it all together as a single wasm
+	emcc imgui/imgui.o imgui/imgui_draw.o imgui/imgui_widgets.o imgui/imgui_impl_glfw.o imgui/imgui_impl_opengl3.o src/example.o \
+    	-I imgui -I /usr/include/GLFW -L /path/to/glfw/lib -lglfw -lGL -s USE_GLFW=3 -s FULL_ES3=1 -s WASM=1 \
+    	-o example.html
+
+if you dont feel like doing all that I have the command you can run here
+
+ emcc  src/example.cpp ./imgui/backends/imgui_impl_glfw.cpp ./imgui/backends/imgui_impl_opengl3.cpp ./imgui/imgui.cpp ./imgui/imgui_draw.cpp ./imgui/imgui_demo.c ./imgui/imgui_widgets.cpp ./imgui/imgui_tables.cpp -std=c++11 -o imgui.js -lGL -s USE_WEBGL2=1 -s USE_GLFW=3 -s FULL_ES3=1 -O2 -s WASM=1 -I./imgui -I./imgui/backends
+
+or better yet, use the makefile I made
+
+here is a break down of the script div if you care
+
+preRun: []
+This is an array that will contain functions to run before the WebAssembly module starts. In Emscripten applications, preRun is used for any setup tasks that need to occur before the WebAssembly module initializes. For instance, you could use this to load assets or perform checks before starting the main program.
+
+postRun: []
+Similar to preRun, this array is for functions that will be called after the WebAssembly module has finished running. It could be used for cleanup, logging, or any post-execution steps.
+
+print: (function() {})()
+The print function is typically used to log output messages in Emscripten applications. In this case, it has been defined as an empty function ((function() {})()) so it effectively does nothing. Usually, print outputs to the browser console, but it is being suppressed here.
+
+printErr: function(text) {}
+This is another function that is supposed to handle error output. It is provided here as an empty function, meaning any errors that would be printed via printErr are being suppressed.
+
+canvas: (function() {...})()
+This part is initializing the WebGL canvas where the WebAssembly application will render its content. It retrieves a <canvas> HTML element by its id (in this case, canvas) and sets it up for WebGL rendering. The function also adds an event listener to handle when the WebGL context is lost.
+
+WebGL Context Lost Listener:
+If the WebGL context is lost (which can happen due to various reasons like GPU resetting or tab switching), an alert is shown to the user, asking them to reload the page. This helps the user understand that the WebGL context is no longer available for rendering, and the application may need to be reloaded to restore it.
+setStatus: function(text) {}
+This is a placeholder function for updating the status of the application. It is often used in WebAssembly applications to show loading progress or status updates. In this case, it does nothing ({}), but it could be customized to display a status message to the user.
+
+totalDependencies: 0
+This tracks the total number of dependencies that need to be resolved before the application can run. It is often used in cases where assets (e.g., files, libraries) need to be loaded before the main program can start.
+
+monitorRunDependencies: function(left) {}
+This is a monitoring function for the number of remaining dependencies to load. It is typically used to show progress or to trigger actions 
+when all dependencies are successfully loaded. In this case, the function does nothing ({}), but it could be used to update a progress bar or handle other events related to dependency loading.
