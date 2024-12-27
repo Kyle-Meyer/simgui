@@ -28,7 +28,7 @@ source ./emsdk_env.sh<br>
 #########################HOW TO BUILD##################################<br>
 make sure you have the emsdk_env sourced before doing this <br>
 if you have cmake:<br>
-```bash
+```
 mkdir build<br>
 cd build<br>
 cmake ..<br>
