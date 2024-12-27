@@ -28,13 +28,16 @@ source ./emsdk_env.sh<br>
 #########################HOW TO BUILD##################################<br>
 make sure you have the emsdk_env sourced before doing this <br>
 if you have cmake:<br>
+
 ```
 mkdir build<br>
 cd build<br>
 cmake ..<br>
 ```
+
 <br>
 if you dont have cmake: <br>
+
 ```bash
 make<br>
 ```
@@ -43,11 +46,13 @@ make<br>
 #########################HOW TO RUN##################################<br>
 <br>
 start a python simple server at the root of your repo<br>
+
 ```bash
 python3 -m http.server<br>
 ```
 <br>
 open your preferred browser and navigate to <br>
+
 ```browser
 localhost:8000<br>
 ```
