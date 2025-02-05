@@ -23,13 +23,13 @@ include_directories("/usr/include/GLFW")
 # Add source files for ImGui and your project
 set(IMGUI_SOURCES
     src/example.cpp
-    imgui/imgui.cpp
-    imgui/imgui_draw.cpp
-    imgui/imgui_demo.cpp
-    imgui/imgui_widgets.cpp
-    imgui/imgui_tables.cpp
-    imgui/backends/imgui_impl_glfw.cpp
-    imgui/backends/imgui_impl_opengl3.cpp
+    imgui_local/imgui.cpp
+    imgui_local/imgui_draw.cpp
+    imgui_local/imgui_demo.cpp
+    imgui_local/imgui_widgets.cpp
+    imgui_local/imgui_tables.cpp
+    imgui_local/backends/imgui_impl_glfw.cpp
+    imgui_local/backends/imgui_impl_opengl3.cpp
 )
 
 message("Toolchain: ${CMAKE_TOOLCHAIN_FILE}")
