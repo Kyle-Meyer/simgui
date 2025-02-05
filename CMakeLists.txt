@@ -34,8 +34,15 @@ set(IMGUI_SOURCES
 
 message("Toolchain: ${CMAKE_TOOLCHAIN_FILE}")
 
+# Ensure the 'resources' directory exists before preloading
+if(EXISTS ${CMAKE_SOURCE_DIR}/resources)
+   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --preload-file ${CMAKE_SOURCE_DIR}/resources@/resources")
+else()
+    message(WARNING "resources directory not found. Preloading skipped.")
+endif()
+
 # Emscripten-specific flags
-set(CMAKE_CXX_FLAGS "-lGL -s USE_WEBGL2=1 -s USE_GLFW=3 -s FULL_ES3=1 -O2 -s WASM=1")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lGL -s USE_WEBGL2=1 -s USE_GLFW=3 -s FULL_ES3=1 -O2 -s WASM=1")
 
 # Define the executable
 add_executable(imgui ${IMGUI_SOURCES})
@@ -63,3 +70,14 @@ set_target_properties(imgui PROPERTIES
     LINK_FLAGS "-o ${OUTPUT_DIR}/imgui.js"
 )
 
+# Ensure the output directory exists
+file(MAKE_DIRECTORY ${OUTPUT_DIR}/resources)
+
+# Copy the entire resources directory to the output directory
+if(EXISTS ${CMAKE_SOURCE_DIR}/resources)
+    add_custom_command(TARGET imgui POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${CMAKE_SOURCE_DIR}/resources
+        ${OUTPUT_DIR}/resources
+    )
+endif()

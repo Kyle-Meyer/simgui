@@ -4,9 +4,9 @@
 #include <GLFW/glfw3.h>  // GLFW for window/context creation
 #include <ostream>
 #include <iostream>
-
+#include <dirent.h>
 #include <stdio.h>
-
+#include <sys/stat.h>
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
 #endif
@@ -49,6 +49,32 @@ EM_JS(void, resizeCanvas, (), {
   js_resizeCanvas();
 });
 
+void listFiles(const char* path) {
+    struct stat info;
+    if (stat(path, &info) != 0) {
+      std::cout << "1" << std::endl;
+        std::cerr << "[ERROR] Path does not exist in VFS: " << path << std::endl;
+        return;
+    }
+    if (!(info.st_mode & S_IFDIR)) {
+    std::cout << "1" << std::endl;
+        std::cerr << "[ERROR] Not a directory: " << path << std::endl;
+        return;
+    }
+
+    DIR* dir = opendir(path);
+    if (!dir) {
+      std::cout << "1" << std::endl;
+        std::cerr << "[ERROR] Could not open directory: " << path << std::endl;
+        return;
+    }
+   std::cout << "what the hell" << std::endl;
+    struct dirent* entry;
+    while ((entry = readdir(dir)) != NULL) {
+        std::cout << "[VFS] Found file: " << entry->d_name << std::endl;
+    }
+    closedir(dir);
+}
 void on_size_changed()
 {
   glfwSetWindowSize(g_window, g_width, g_height);
@@ -79,7 +105,7 @@ void loop()
   {
       static float f = 0.0f;
       static int counter = 0;
-      ImGui::Text("Hello, world!");                           // Display some text (you can use a format string too)
+      ImGui::Text("Hello, world! Dingo");                           // Display some text (you can use a format string too)
       ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
       ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
 
@@ -93,7 +119,18 @@ void loop()
 
       ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
   }
+   {
+      static float f = 0.0f;
+      static int counter = 0;
 
+      ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.168f, 0.219f, 0.337f, 1.0f)); // #2B3856 in ImGui's ImVec4 format
+      ImGui::Begin("My Window");
+
+      ImGui::Text("Hello, world!");
+
+      ImGui::End();
+      ImGui::PopStyleColor(); // Restore previous color
+   }
   // 2. Show another simple window. In most cases you will use an explicit Begin/End pair to name your windows.
   if (show_another_window)
   {
@@ -173,6 +210,9 @@ int init_imgui()
   io.Fonts->AddFontFromFileTTF("data/xkcd-script.ttf", 32.0f);
   io.Fonts->AddFontDefault();
 */
+   std::cout << "HEY" << std::endl;
+   listFiles("/resources");
+   io.Fonts->AddFontFromFileTTF("/resources/LucidiaSansTypeWriter.ttf", 16.0f); // 16.0f is the font size
   resizeCanvas();
 
   return 0;
@@ -198,7 +238,7 @@ int main(int argc, char** argv)
   g_width = canvas_get_width();
   g_height = canvas_get_height();
   if (init() != 0) return 1;
-
+  std::cout << "pimbo " << std::endl;
   #ifdef __EMSCRIPTEN__
   emscripten_set_main_loop(loop, 0, 1);
   #endif
