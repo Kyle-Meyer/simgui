@@ -28,6 +28,10 @@ bool show_another_window = false;
 int g_width;
 int g_height;
 
+ImU32 darkBlue  = IM_COL32(16, 22, 51, 255);  //darkblue
+ImU32 darkGrey   = IM_COL32(169, 169, 169, 255); //grey
+
+
 // you may be wondering what the "EM_JS" stuff here is, well a cool thing with emscripten 3
 // is that you can write JS code directly in your C++ code, since WASM uses a Just in Time (JIT)
 // linker, it can compile down JS code as well as C++ code, I only use it sparingly here
@@ -82,6 +86,179 @@ void on_size_changed()
   ImGui::SetCurrentContext(ImGui::GetCurrentContext());
 }
 
+
+void setButtonStyle(ImDrawList* draw_list, float buttons_start_x, float buttons_start_y, float button_width, float button_height)
+{
+   float button_spacing = 20.0f; // Space between buttons
+   // Define button styles (matching main window)
+   ImVec4 button_bg_color = ImVec4(0.168f, 0.219f, 0.337f, 1.0f);   // #2B3856 (Main Window Background)
+   ImVec4 button_border_color = ImVec4(0.66f, 0.66f, 0.66f, 1.0f);  // Grey border color
+   ImVec4 button_hover_color = ImVec4(0.2f, 0.3f, 0.5f, 1.0f);      // Slightly lighter on hover
+   ImVec4 button_active_color = ImVec4(0.15f, 0.18f, 0.3f, 1.0f);   // Darker when clicked
+
+   // Push styles before rendering buttons
+   ImGui::PushStyleColor(ImGuiCol_Button, button_bg_color);
+   ImGui::PushStyleColor(ImGuiCol_ButtonHovered, button_hover_color);
+   ImGui::PushStyleColor(ImGuiCol_ButtonActive, button_active_color);
+   ImGui::PushStyleColor(ImGuiCol_Border, button_border_color);
+
+   // Set cursor position for Button 1 (slightly to the left)
+   ImGui::SetCursorPosX(buttons_start_x);
+   ImGui::SetCursorPosY(buttons_start_y);
+   // Set cursor for Button 1 (slightly to the left)
+   ImVec2 button1_pos = ImGui::GetCursorScreenPos(); // Get screen-space position of the button
+   // Draw border for Button 1
+   draw_list->AddRectFilled(ImVec2(button1_pos.x, button1_pos.y),
+                            ImVec2(button1_pos.x + button_width, button1_pos.y + 3),
+                            darkGrey);    // Top border
+   draw_list->AddRectFilled(ImVec2(button1_pos.x, button1_pos.y),
+                               ImVec2(button1_pos.x + 3, button1_pos.y + button_height),
+                               darkGrey);  // Left border
+   draw_list->AddRectFilled(ImVec2(button1_pos.x + button_width - 3, button1_pos.y),
+                               ImVec2(button1_pos.x + button_width, button1_pos.y + button_height),
+                               darkBlue); // Right border
+   draw_list->AddRectFilled(ImVec2(button1_pos.x, button1_pos.y + button_height - 3),
+                               ImVec2(button1_pos.x + button_width, button1_pos.y + button_height),
+                               darkBlue); // Bottom border
+
+   if (ImGui::Button("Button 1", ImVec2(button_width, button_height))) 
+   {
+         // Handle Button 1 click
+   }
+
+   // Move to the right for Button 2
+   ImGui::SameLine(0, button_spacing);  // Apply spacing
+   ImVec2 button2_pos = ImGui::GetCursorScreenPos();
+   // Draw border for Button 2
+   draw_list->AddRectFilled(ImVec2(button2_pos.x, button2_pos.y),
+                               ImVec2(button2_pos.x + button_width, button2_pos.y + 3),
+                               darkGrey);    // Top border
+   draw_list->AddRectFilled(ImVec2(button2_pos.x, button2_pos.y),
+                               ImVec2(button2_pos.x + 3, button2_pos.y + button_height),
+                               darkGrey);  // Left border
+   draw_list->AddRectFilled(ImVec2(button2_pos.x + button_width - 3, button2_pos.y),
+                               ImVec2(button2_pos.x + button_width, button2_pos.y + button_height),
+                               darkBlue); // Right border
+   draw_list->AddRectFilled(ImVec2(button2_pos.x, button2_pos.y + button_height - 3),
+                               ImVec2(button2_pos.x + button_width, button2_pos.y + button_height),
+                               darkBlue); // Bottom border
+
+
+   if (ImGui::Button("Button 2", ImVec2(button_width, button_height))) 
+   {
+      // Handle Button 2 click
+   }
+     
+   ImGui::PopStyleColor(4);
+}
+
+void RenderSubWindow(ImVec2 win_size, ImVec2 sub_size) {
+    static int selected_row = -1;  // Track selected row
+
+    // Define colors
+    ImVec4 rowColor = ImVec4(0.094f, 0.129f, 0.302f, 1.0f);      // Dark blue for rows
+    ImVec4 headerColor = ImVec4(0.168f, 0.219f, 0.337f, 1.0f);   // Darker blue for header
+
+    // Center the sub-window
+    ImGui::SetCursorPosX((win_size.x - sub_size.x) * 0.5f);
+    ImGui::SetCursorPosY((win_size.y - sub_size.y - 90) * 0.5f);
+
+    // Create the sub-window
+    ImGui::BeginChild("SubWindow", sub_size, false);
+
+    // Retrieve draw list
+    ImDrawList* draw_list = ImGui::GetWindowDrawList();
+    
+    // Get child window position & size **after** it has been drawn
+    ImVec2 sub_min = ImGui::GetWindowPos();
+    ImVec2 sub_max = ImVec2(sub_min.x + sub_size.x, sub_min.y + sub_size.y);
+
+    // Override row colors (ensures all rows have same background color)
+    ImGui::PushStyleColor(ImGuiCol_TableRowBg, rowColor);
+    ImGui::PushStyleColor(ImGuiCol_TableRowBgAlt, rowColor);
+
+    // Start the table (Disable borders inside the table)
+    if (ImGui::BeginTable("USV Table", 6, ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY | ImGuiTableFlags_NoBordersInBody)) {
+        
+        // **Draw the header background manually**
+        ImVec2 header_min = ImGui::GetCursorScreenPos();
+        ImVec2 header_max = ImVec2(header_min.x + sub_size.x, header_min.y + 25.0f); // Assuming 25px height for header
+        draw_list->AddRectFilled(header_min, header_max, ImGui::GetColorU32(headerColor));
+
+        // Define column headers
+        ImGui::TableSetupColumn("USV ID");
+        ImGui::TableSetupColumn("USV-TN");
+        ImGui::TableSetupColumn("Weapon Control Status");
+        ImGui::TableSetupColumn("Status");
+        ImGui::TableSetupColumn("Inv");
+        ImGui::TableSetupColumn("Comm Status");
+
+        // Render the header row **after drawing the background**
+        ImGui::TableHeadersRow();
+
+        // Populate table rows
+        for (int i = 0; i < 50; i++) {
+            ImGui::TableNextRow();
+
+            // Make the row selectable
+            ImGui::TableSetColumnIndex(0);
+            bool selected = (selected_row == i);
+            char usv_id[16];  
+            std::snprintf(usv_id, sizeof(usv_id), "USV-%d", i);
+            if (ImGui::Selectable(usv_id, selected, ImGuiSelectableFlags_SpanAllColumns)) {
+                selected_row = i;
+            }
+
+            ImGui::TableSetColumnIndex(1);
+            ImGui::Text("80001");
+
+            ImGui::TableSetColumnIndex(2);
+            ImGui::Text("Ownship/Controlled");
+
+            ImGui::TableSetColumnIndex(3);
+            ImGui::Text("X");
+
+            ImGui::TableSetColumnIndex(4);
+            ImGui::Text("%d", i);
+
+            ImGui::TableSetColumnIndex(5);
+            ImGui::Text("Down");
+        }
+
+        ImGui::EndTable();
+    }
+
+    // Restore original row colors
+    ImGui::PopStyleColor(2);
+
+    ImGui::EndChild();
+
+    // Draw the custom border after the child window
+    ImU32 subRightColor  = IM_COL32(169, 169, 169, 255);   // Grey
+    ImU32 subLeftColor   = IM_COL32(16, 22, 51, 255);      // Blue
+    ImU32 subTopColor    = IM_COL32(16, 22, 51, 255);      // Blue
+    ImU32 subBottomColor = IM_COL32(169, 169, 169, 255);   // Grey
+    int32_t borderOffset = 2;
+    float thickness = 2.0f;
+
+    // Top border
+    draw_list->AddRectFilled(ImVec2(sub_min.x, sub_min.y - borderOffset),
+                             ImVec2(sub_max.x, sub_min.y + thickness - borderOffset),
+                             subTopColor);
+    // Left border 
+    draw_list->AddRectFilled(ImVec2(sub_min.x - borderOffset, sub_min.y - borderOffset),
+                             ImVec2(sub_min.x + thickness - borderOffset, sub_max.y),
+                             subLeftColor);
+    // Right border
+    draw_list->AddRectFilled(ImVec2(sub_max.x - thickness + borderOffset, sub_min.y - borderOffset),
+                             ImVec2(sub_max.x + borderOffset, sub_max.y),
+                             subRightColor);
+    // Bottom border
+    draw_list->AddRectFilled(ImVec2(sub_min.x - borderOffset, sub_max.y - thickness + borderOffset), 
+                             ImVec2(sub_max.x - borderOffset + (borderOffset * 2), sub_max.y + borderOffset), 
+                             subBottomColor);
+}
+
 void loop()
 {
   int width = canvas_get_width();
@@ -119,18 +296,109 @@ void loop()
 
       ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
   }
+
+   //control esque window
    {
+
+
       static float f = 0.0f;
       static int counter = 0;
+            // Draw main window borders
+      ImDrawList* draw_list = ImGui::GetForegroundDrawList();
+      float thickness = 3.0f;
+      // Apply styles
+      ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0)); // Hide default border
+      ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.168f, 0.219f, 0.337f, 1.0f)); // #2B3856
 
-      ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.168f, 0.219f, 0.337f, 1.0f)); // #2B3856 in ImGui's ImVec4 format
-      ImGui::Begin("My Window");
+      ImGui::Begin("Control Service", nullptr, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
 
-      ImGui::Text("Hello, world!");
+      // Get window dimensions
+      ImVec2 win_pos = ImGui::GetWindowPos();
+      ImVec2 win_size = ImGui::GetWindowSize();
 
-      ImGui::End();
-      ImGui::PopStyleColor(); // Restore previous color
-   }
+      // Define sub-window size
+      ImVec2 sub_size = ImVec2(win_size.x * 0.6f, win_size.y * 0.6f);
+      ImVec2 sub_pos = ImVec2(
+         win_pos.x + (win_size.x - sub_size.x) * 0.5f,
+         win_pos.y + (win_size.y - sub_size.y) * 0.5f
+      );
+
+      // Push background color for sub-window
+      ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.094f, 0.129f, 0.302f, 1.0f)); // #18214D
+      // Calculate the position for the text above the sub-window
+      ImGui::SetCursorPosX((win_size.x - sub_size.x) * 0.5f); // Center horizontally
+      ImGui::SetCursorPosY((win_size.y - sub_size.y - 90) * 0.5f - 25); // Move up a bit
+
+      // Render the text
+      /*
+      ImGui::Text("\tUSV ID\tUSV-TN\tWeapon Control Status\tStatus Inv\tComm Status");
+      // Create the sub-window
+      ImGui::SetCursorPosX((win_size.x - sub_size.x) * 0.5f);  // Center horizontally
+      ImGui::SetCursorPosY((win_size.y - sub_size.y - 90) * 0.5f);  // Center vertically
+      ImGui::BeginChild("SubWindow", sub_size, false, ImGuiWindowFlags_AlwaysVerticalScrollbar);
+
+      // UI inside sub-window
+      for (int i = 0; i < 50; i++) 
+      {
+          ImGui::Text("\tUSV-123\t80001\tOwnship/Controlled\tX\t%d\tDown", i);
+      }
+
+      // Get sub-window min/max for borders
+      ImVec2 sub_min = ImGui::GetWindowPos();
+      ImVec2 sub_max = ImVec2(sub_min.x + sub_size.x, sub_min.y + sub_size.y);
+
+      // End sub-window
+      ImGui::EndChild();
+      */ 
+      RenderSubWindow(win_size, sub_size);
+      ImVec2 sub_min = ImGui::GetWindowPos();
+      ImVec2 sub_max = ImVec2(sub_min.x + sub_size.x, sub_min.y + sub_size.y);
+      //first set of Buttons
+
+      float button_width = 120.0f;  // Width of each button
+      float button_height = 30.0f;
+      float button_spacing = 20.0f; // Space between buttons
+
+      // Calculate total width occupied by buttons
+      float total_buttons_width = (button_width * 2) + button_spacing;
+
+
+      // Compute starting X position to center the buttons below the subwindow
+      float buttons_start_x = (win_size.x - total_buttons_width) * 0.5f; 
+      float buttons_start_y = (win_size.y - sub_size.y - 90) * 0.5f + sub_size.y + 15;  // Position right below subwindow
+
+      setButtonStyle(draw_list, buttons_start_x, buttons_start_y, button_width, button_height);
+      //end of buttons
+
+      ImGui::PopStyleColor(); // Restore sub-window background color
+
+      ImGui::End(); // Finish the main window
+
+      
+
+      // Main window border colors
+      ImU32 rightColor  = IM_COL32(16, 22, 51, 255);  //darkblue
+      ImU32 leftColor   = IM_COL32(169, 169, 169, 255); //grey
+      ImU32 topColor    = IM_COL32(169, 169, 169, 255);
+      ImU32 bottomColor = IM_COL32(16, 22, 51, 255);
+
+      // Draw borders for the main window
+      draw_list->AddRectFilled(ImVec2(win_pos.x, win_pos.y), 
+                               ImVec2(win_pos.x + win_size.x, win_pos.y + thickness), 
+                               topColor);
+      draw_list->AddRectFilled(ImVec2(win_pos.x, win_pos.y), 
+                               ImVec2(win_pos.x + thickness, win_pos.y + win_size.y), 
+                               leftColor);
+      draw_list->AddRectFilled(ImVec2(win_pos.x + win_size.x - thickness, win_pos.y), 
+                               ImVec2(win_pos.x + win_size.x, win_pos.y + win_size.y), 
+                               rightColor);
+      draw_list->AddRectFilled(ImVec2(win_pos.x, win_pos.y + win_size.y - thickness), 
+                               ImVec2(win_pos.x + win_size.x, win_pos.y + win_size.y), 
+                               bottomColor);
+
+   ImGui::PopStyleColor(2); // Restore styles
+
+   } //end of control esque window
   // 2. Show another simple window. In most cases you will use an explicit Begin/End pair to name your windows.
   if (show_another_window)
   {
