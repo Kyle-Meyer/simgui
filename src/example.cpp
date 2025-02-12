@@ -89,7 +89,7 @@ void on_size_changed()
 
 void setButtonStyle(ImDrawList* draw_list, float buttons_start_x, float buttons_start_y, float button_width, float button_height)
 {
-   float button_spacing = 20.0f; // Space between buttons
+   float button_spacing = 60.0f; // Space between buttons
    // Define button styles (matching main window)
    ImVec4 button_bg_color = ImVec4(0.168f, 0.219f, 0.337f, 1.0f);   // #2B3856 (Main Window Background)
    ImVec4 button_border_color = ImVec4(0.66f, 0.66f, 0.66f, 1.0f);  // Grey border color
@@ -121,7 +121,7 @@ void setButtonStyle(ImDrawList* draw_list, float buttons_start_x, float buttons_
                                ImVec2(button1_pos.x + button_width, button1_pos.y + button_height),
                                darkBlue); // Bottom border
 
-   if (ImGui::Button("Button 1", ImVec2(button_width, button_height))) 
+   if (ImGui::Button("Take Control", ImVec2(button_width, button_height))) 
    {
          // Handle Button 1 click
    }
@@ -144,7 +144,7 @@ void setButtonStyle(ImDrawList* draw_list, float buttons_start_x, float buttons_
                                darkBlue); // Bottom border
 
 
-   if (ImGui::Button("Button 2", ImVec2(button_width, button_height))) 
+   if (ImGui::Button("Release Control", ImVec2(button_width, button_height))) 
    {
       // Handle Button 2 click
    }
@@ -193,8 +193,6 @@ void RenderSubWindow(ImVec2 win_size, ImVec2 sub_size) {
     if (ImGui::Button("Comm Status", ImVec2(columnWidths[5], 0))) { }
     ImGui::PopStyleColor();
 
-    ImGui::Spacing();
-    ImGui::Separator();
     ImGui::Spacing();
 
     // Override row colors
@@ -278,11 +276,15 @@ void RenderSubWindow(ImVec2 win_size, ImVec2 sub_size) {
     float bottomOffset = -10;
     table_max = ImGui::GetItemRectMax();
     table_min = ImGui::GetItemRectMin();
+
+    table_max = ImVec2(table_max.x - 20, table_max.y - 27);
+    table_min = ImVec2(table_min.x + 48 , table_min.y + 28);
     // Compute the other corners
-    ImVec2 topLeft = table_min;
+    ImVec2 topLeft = ImVec2(table_min.x, table_min.y);
     ImVec2 topRight = ImVec2(table_max.x, table_min.y);
     ImVec2 bottomLeft = ImVec2(table_min.x, table_max.y);
-    ImVec2 bottomRight = table_max;
+    ImVec2 bottomRight = ImVec2(table_max.x, table_max.y);
+
     draw_list->AddLine(topLeft, topRight, subTopColor, thickness);        // Top border (blue)
     draw_list->AddLine(topLeft, bottomLeft, subLeftColor, thickness);      // Left border (blue)
     draw_list->AddLine(topRight, bottomRight, subRightColor, thickness);   // Right border (grey)
@@ -360,36 +362,15 @@ void loop()
       // Calculate the position for the text above the sub-window
       ImGui::SetCursorPosX((win_size.x - sub_size.x) * 0.5f); // Center horizontally
       ImGui::SetCursorPosY((win_size.y - sub_size.y - 90) * 0.5f - 25); // Move up a bit
-
-      // Render the text
-      /*
-      ImGui::Text("\tUSV ID\tUSV-TN\tWeapon Control Status\tStatus Inv\tComm Status");
-      // Create the sub-window
-      ImGui::SetCursorPosX((win_size.x - sub_size.x) * 0.5f);  // Center horizontally
-      ImGui::SetCursorPosY((win_size.y - sub_size.y - 90) * 0.5f);  // Center vertically
-      ImGui::BeginChild("SubWindow", sub_size, false, ImGuiWindowFlags_AlwaysVerticalScrollbar);
-
-      // UI inside sub-window
-      for (int i = 0; i < 50; i++) 
-      {
-          ImGui::Text("\tUSV-123\t80001\tOwnship/Controlled\tX\t%d\tDown", i);
-      }
-
-      // Get sub-window min/max for borders
-      ImVec2 sub_min = ImGui::GetWindowPos();
-      ImVec2 sub_max = ImVec2(sub_min.x + sub_size.x, sub_min.y + sub_size.y);
-
-      // End sub-window
-      ImGui::EndChild();
-      */ 
+ 
       RenderSubWindow(win_size, sub_size);
       ImVec2 sub_min = ImGui::GetWindowPos();
       ImVec2 sub_max = ImVec2(sub_min.x + sub_size.x, sub_min.y + sub_size.y);
       //first set of Buttons
 
-      float button_width = 120.0f;  // Width of each button
+      float button_width = 180.0f;  // Width of each button
       float button_height = 30.0f;
-      float button_spacing = 20.0f; // Space between buttons
+      float button_spacing = 60.0f; // Space between buttons
 
       // Calculate total width occupied by buttons
       float total_buttons_width = (button_width * 2) + button_spacing;
