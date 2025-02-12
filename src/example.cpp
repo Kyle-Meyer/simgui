@@ -152,13 +152,13 @@ void setButtonStyle(ImDrawList* draw_list, float buttons_start_x, float buttons_
    ImGui::PopStyleColor(4);
 }
 
+
 void RenderSubWindow(ImVec2 win_size, ImVec2 sub_size) {
     static int selected_row = -1;  // Track selected row
 
     // Define colors
     ImVec4 rowColor = ImVec4(0.094f, 0.129f, 0.302f, 1.0f);      // Dark blue for rows
     ImVec4 headerColor = ImVec4(0.168f, 0.219f, 0.337f, 1.0f);   // Darker blue for header
-    ImVec4 headerTextColor = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);     // White text for header
 
     // Center the sub-window
     ImGui::SetCursorPosX((win_size.x - sub_size.x) * 0.5f);
@@ -166,54 +166,48 @@ void RenderSubWindow(ImVec2 win_size, ImVec2 sub_size) {
 
     // Create the sub-window
     ImGui::BeginChild("SubWindow", sub_size, false);
-
-    // Retrieve draw list
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
-    
-    // Get child window position & size **after** it has been drawn
-    ImVec2 sub_min = ImGui::GetWindowPos();
-    ImVec2 sub_max = ImVec2(sub_min.x + sub_size.x, sub_min.y + sub_size.y);
-    ImGui::PushStyleColor(ImGuiCol_Button, headerColor);
-        
-    // Define column widths (Adjust as needed)
+
+    // Define column widths
     float columnWidths[] = { 70.0f, 70.0f, 200.0f, 60.0f, 50.0f, 100.0f };
     float totalTableWidth = 0.0f;
-
-    // Calculate total width
     for (float w : columnWidths) totalTableWidth += w;
 
-    // Center the button row relative to the table
+    // Center header buttons
     float availableWidth = ImGui::GetContentRegionAvail().x;
     float offsetX = (availableWidth - totalTableWidth) * 0.5f;
     ImGui::SetCursorPosX(ImGui::GetCursorPosX() + offsetX - 10);
-    float columnWidth = 100.0f;  // Set to match table column sizes
 
-    // Render buttons with matching column widths
-    if (ImGui::Button("USV ID", ImVec2(columnWidths[0], 0))) { /* Sort */ }
+    // Render buttons (header)
+    ImGui::PushStyleColor(ImGuiCol_Button, headerColor);
+    if (ImGui::Button("USV ID", ImVec2(columnWidths[0], 0))) {  }
     ImGui::SameLine();
-    if (ImGui::Button("USV-TN", ImVec2(columnWidths[1], 0))) { /* Sort */ }
+    if (ImGui::Button("USV-TN", ImVec2(columnWidths[1], 0))) {  }
     ImGui::SameLine();
-    if (ImGui::Button("Weapon Control Status", ImVec2(columnWidths[2], 0))) { /* Sort */ }
+    if (ImGui::Button("Weapon Control Status", ImVec2(columnWidths[2], 0))) {  }
     ImGui::SameLine();
-    if (ImGui::Button("Status", ImVec2(columnWidths[3], 0))) { /* Sort */ }
+    if (ImGui::Button("Status", ImVec2(columnWidths[3], 0))) {  }
     ImGui::SameLine();
-    if (ImGui::Button("Inv", ImVec2(columnWidths[4], 0))) { /* Sort */ }
+    if (ImGui::Button("Inv", ImVec2(columnWidths[4], 0))) {  }
     ImGui::SameLine();
-    if (ImGui::Button("Comm Status", ImVec2(columnWidths[5], 0))) { /* Sort */ }
+    if (ImGui::Button("Comm Status", ImVec2(columnWidths[5], 0))) { }
+    ImGui::PopStyleColor();
 
-    // Add some spacing between buttons and the table
     ImGui::Spacing();
     ImGui::Separator();
     ImGui::Spacing();
-    ImGui::PopStyleColor();
-    // Override row colors (ensures all rows have same background color)
+
+    // Override row colors
     ImGui::PushStyleColor(ImGuiCol_TableRowBg, rowColor);
     ImGui::PushStyleColor(ImGuiCol_TableRowBgAlt, rowColor);
-    // Ensure table width matches buttons
+    ImVec2 table_min;
+    ImVec2 table_max;
+    // Capture table position BEFORE rendering
     ImGui::SetCursorPosX(ImGui::GetCursorPosX() + offsetX - 5);
-    if (ImGui::BeginTable("USV Table", 6, ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY, ImVec2(totalTableWidth + 40, 300))) {
     
-    // Set up columns with matching widths
+
+    
+    if (ImGui::BeginTable("USV Table", 6, ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY, ImVec2(totalTableWidth + 40, 300))) {
     ImGui::TableSetupColumn("USV ID", ImGuiTableColumnFlags_WidthFixed, columnWidths[0]);
     ImGui::TableSetupColumn("USV-TN", ImGuiTableColumnFlags_WidthFixed, columnWidths[1]);
     ImGui::TableSetupColumn("Weapon Control Status", ImGuiTableColumnFlags_WidthFixed, columnWidths[2]);
@@ -221,88 +215,78 @@ void RenderSubWindow(ImVec2 win_size, ImVec2 sub_size) {
     ImGui::TableSetupColumn("Inv", ImGuiTableColumnFlags_WidthFixed, columnWidths[4]);
     ImGui::TableSetupColumn("Comm Status", ImGuiTableColumnFlags_WidthFixed, columnWidths[5]);
 
-    
-for (int i = 0; i < 50; i++) {
-    ImGui::TableNextRow();
+    for (int i = 0; i < 50; i++) {
+        ImGui::TableNextRow();
 
-    for (int col = 0; col < 6; col++) {
-        ImGui::TableSetColumnIndex(col);
+        for (int col = 0; col < 6; col++) {
+            ImGui::TableSetColumnIndex(col);
 
-        // Get column width safely
-        float cellWidth = ImGui::GetContentRegionAvail().x;  // Safe alternative
+            // Use the actual column width instead of GetContentRegionAvail()
+            float cellWidth = columnWidths[col];  
 
-        // Get the text to display in each column
-        const char* text = nullptr;
-        char buffer[16];
+            // Format text content
+            const char* text = nullptr;
+            char buffer[16];
+            switch (col) {
+                case 0: std::snprintf(buffer, sizeof(buffer), "USV-%d", i); text = buffer; break;
+                case 1: text = "80001"; break;
+                case 2: text = "Ownship/Controlled"; break;
+                case 3: text = "X"; break;
+                case 4: std::snprintf(buffer, sizeof(buffer), "%d", i); text = buffer; break;
+                case 5: text = "Down"; break;
+            }
 
-        switch (col) {
-            case 0:
-                std::snprintf(buffer, sizeof(buffer), "USV-%d", i);
-                text = buffer;
-                break;
-            case 1:
-                text = "80001";
-                break;
-            case 2:
-                text = "Ownship/Controlled";
-                break;
-            case 3:
-                text = "X";
-                break;
-            case 4:
-                std::snprintf(buffer, sizeof(buffer), "%d", i);
-                text = buffer;
-                break;
-            case 5:
-                text = "Down";
-                break;
-        }
-
-        // Ensure text is set
-        if (text) {
-            // Get text size
+            // **Fix: Reset cursor to align text properly**
             ImVec2 textSize = ImGui::CalcTextSize(text);
-
-            // Calculate horizontal centering offset
             float textOffsetX = (cellWidth - textSize.x) * 0.5f;
+            textOffsetX = (textOffsetX > 0) ? textOffsetX : 0; // Prevent negative offset
 
-            // Apply centering by adjusting cursor position
-            ImGui::SetCursorPosX(ImGui::GetCursorPosX() + textOffsetX);
-            ImGui::Text("%s", text);
+            // **Fix: Reset cursor before text is drawn**
+            float initialCursorX = ImGui::GetCursorPosX();
+            ImGui::SetCursorPosX(initialCursorX + textOffsetX); 
+
+            // **Make row selectable**
+            if (ImGui::Selectable(text, selected_row == i, ImGuiSelectableFlags_SpanAllColumns)) {
+                selected_row = i; // Update selected row
+            }
         }
     }
-}
+
     ImGui::EndTable();
 }
-    // Restore original row colors
-    ImGui::PopStyleColor(2);
 
+    ImGui::PopStyleColor(2);
     ImGui::EndChild();
 
-    // Draw the custom border after the child window
+    // Border color scheme (unchanged)
     ImU32 subRightColor  = IM_COL32(169, 169, 169, 255);   // Grey
     ImU32 subLeftColor   = IM_COL32(16, 22, 51, 255);      // Blue
     ImU32 subTopColor    = IM_COL32(16, 22, 51, 255);      // Blue
     ImU32 subBottomColor = IM_COL32(169, 169, 169, 255);   // Grey
-    int32_t borderOffset = 2;
+    //ImU32 subRightColor  = IM_COL32(255, 0, 0, 255);   // Grey
+    //ImU32 subLeftColor   = IM_COL32(0, 255, 0, 255);      // Blue
+    //ImU32 subTopColor    = IM_COL32(0, 0, 255, 255);      // Blue
+    //ImU32 subBottomColor = IM_COL32(50, 50, 50, 255);   // Grey
+
+    int borderOffset = 2;
     float thickness = 3.0f;
 
-    // Top border
-    draw_list->AddRectFilled(ImVec2(sub_min.x, sub_min.y - borderOffset),
-                             ImVec2(sub_max.x, sub_min.y + thickness - borderOffset),
-                             subTopColor);
-    // Left border 
-    draw_list->AddRectFilled(ImVec2(sub_min.x - borderOffset, sub_min.y - borderOffset),
-                             ImVec2(sub_min.x + thickness - borderOffset, sub_max.y),
-                             subLeftColor);
-    // Right border
-    draw_list->AddRectFilled(ImVec2(sub_max.x - thickness + borderOffset, sub_min.y - borderOffset),
-                             ImVec2(sub_max.x + borderOffset, sub_max.y),
-                             subRightColor);
-    // Bottom border
-    draw_list->AddRectFilled(ImVec2(sub_min.x - borderOffset, sub_max.y - thickness + borderOffset), 
-                             ImVec2(sub_max.x - borderOffset + (borderOffset * 2), sub_max.y + borderOffset), 
-                             subBottomColor);
+    // Draw borders **only around the table**
+    float leftOffset = -10;
+    float topOffset = -10;
+    float rightOffset = -10;
+    float bottomOffset = -10;
+    table_max = ImGui::GetItemRectMax();
+    table_min = ImGui::GetItemRectMin();
+    // Compute the other corners
+    ImVec2 topLeft = table_min;
+    ImVec2 topRight = ImVec2(table_max.x, table_min.y);
+    ImVec2 bottomLeft = ImVec2(table_min.x, table_max.y);
+    ImVec2 bottomRight = table_max;
+    draw_list->AddLine(topLeft, topRight, subTopColor, thickness);        // Top border (blue)
+    draw_list->AddLine(topLeft, bottomLeft, subLeftColor, thickness);      // Left border (blue)
+    draw_list->AddLine(topRight, bottomRight, subRightColor, thickness);   // Right border (grey)
+    draw_list->AddLine(bottomLeft, bottomRight, subBottomColor, thickness); // Bottom border (grey)
 }
 
 void loop()
@@ -356,6 +340,8 @@ void loop()
       ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0)); // Hide default border
       ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.168f, 0.219f, 0.337f, 1.0f)); // #2B3856
 
+      // Set the default size of the window before calling Begin()
+      ImGui::SetNextWindowSize(ImVec2(1100, 600), ImGuiCond_FirstUseEver); 
       ImGui::Begin("Control Service", nullptr, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
 
       // Get window dimensions
