@@ -155,7 +155,7 @@ void setButtonStyle(ImDrawList* draw_list, float buttons_start_x, float buttons_
 
 void RenderSubWindow(ImVec2 win_size, ImVec2 sub_size) {
     static int selected_row = -1;  // Track selected row
-
+    static int right_clicked_row = -1; // Track right-clicked row
     // Define colors
     ImVec4 rowColor = ImVec4(0.094f, 0.129f, 0.302f, 1.0f);      // Dark blue for rows
     ImVec4 headerColor = ImVec4(0.168f, 0.219f, 0.337f, 1.0f);   // Darker blue for header
@@ -216,6 +216,7 @@ void RenderSubWindow(ImVec2 win_size, ImVec2 sub_size) {
     for (int i = 0; i < 50; i++) {
         ImGui::TableNextRow();
 
+        bool rowClicked = false;  // Flag to check if the row was clicked
         for (int col = 0; col < 6; col++) {
             ImGui::TableSetColumnIndex(col);
 
@@ -247,11 +248,37 @@ void RenderSubWindow(ImVec2 win_size, ImVec2 sub_size) {
             if (ImGui::Selectable(text, selected_row == i, ImGuiSelectableFlags_SpanAllColumns)) {
                 selected_row = i; // Update selected row
             }
+
+            // **Only trigger once per row, not per column**
+            if (!rowClicked && ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+              right_clicked_row = i;
+              ImGui::OpenPopup("RightClickMenu");
+              std::cout << "open the pop up damnit " << right_clicked_row << std::endl;
+              rowClicked = true;  // Prevent multiple popups per row
+            } 
+        }
+        if (rowClicked) {
+          ImGui::SetNextWindowPos(ImGui::GetMousePos());  // Position the popup at cursor
+          std::cout << "set next pos" << std::endl;
         }
     }
-
+    // **Keep the popup inside the loop for proper scope**
+    // this is such a pain, I'm not gonna bother styling this for right now
+    if (ImGui::BeginPopup("RightClickMenu")) {
+      ImGui::Text("Options for USV-%d", right_clicked_row);
+      ImGui::Separator();
+      if (ImGui::MenuItem("Pri Hook")) {
+        printf("Pri Hook selected for USV-%d\n", right_clicked_row);
+      }
+      if (ImGui::MenuItem("Sec Hook")) {
+        printf("Sec Hook selected for USV-%d\n", right_clicked_row);
+      }
+      ImGui::EndPopup();
+    }
     ImGui::EndTable();
-}
+    
+  }
+    
 
     ImGui::PopStyleColor(2);
     ImGui::EndChild();
@@ -276,7 +303,8 @@ void RenderSubWindow(ImVec2 win_size, ImVec2 sub_size) {
     float bottomOffset = -10;
     table_max = ImGui::GetItemRectMax();
     table_min = ImGui::GetItemRectMin();
-
+    
+    //TODO make this better
     table_max = ImVec2(table_max.x - 20, table_max.y - 27);
     table_min = ImVec2(table_min.x + 48 , table_min.y + 28);
     // Compute the other corners
