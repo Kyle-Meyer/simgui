@@ -303,7 +303,8 @@ void RenderSubWindow(ImVec2 win_size, ImVec2 sub_size) {
     float bottomOffset = -10;
     table_max = ImGui::GetItemRectMax();
     table_min = ImGui::GetItemRectMin();
-    
+    ImVec2 scrollbarPadding(20, 0); // Give space for scrollbar
+                                  
     //TODO make this better
     table_max = ImVec2(table_max.x - 20, table_max.y - 27);
     table_min = ImVec2(table_min.x + 48 , table_min.y + 28);
@@ -314,7 +315,12 @@ void RenderSubWindow(ImVec2 win_size, ImVec2 sub_size) {
     ImVec2 bottomRight = ImVec2(table_max.x, table_max.y);
     
     //just in case the table is not the full size 
-    draw_list->AddRectFilled(topLeft, bottomRight, IM_COL32(24, 33, 77, 255));
+    //btw this is dumb, and can def be done better
+    draw_list->AddRectFilled(
+      topLeft,
+      ImVec2(bottomRight.x - scrollbarPadding.x, bottomRight.y - scrollbarPadding.y),
+      IM_COL32(24, 33, 77, 255)
+    );
     draw_list->AddLine(topLeft, topRight, subTopColor, thickness);        // Top border (blue)
     draw_list->AddLine(topLeft, bottomLeft, subLeftColor, thickness);      // Left border (blue)
     draw_list->AddLine(topRight, bottomRight, subRightColor, thickness);   // Right border (grey)
