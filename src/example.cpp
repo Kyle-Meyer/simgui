@@ -312,7 +312,9 @@ void RenderSubWindow(ImVec2 win_size, ImVec2 sub_size) {
     ImVec2 topRight = ImVec2(table_max.x, table_min.y);
     ImVec2 bottomLeft = ImVec2(table_min.x, table_max.y);
     ImVec2 bottomRight = ImVec2(table_max.x, table_max.y);
-
+    
+    //just in case the table is not the full size 
+    draw_list->AddRectFilled(topLeft, bottomRight, IM_COL32(24, 33, 77, 255));
     draw_list->AddLine(topLeft, topRight, subTopColor, thickness);        // Top border (blue)
     draw_list->AddLine(topLeft, bottomLeft, subLeftColor, thickness);      // Left border (blue)
     draw_list->AddLine(topRight, bottomRight, subRightColor, thickness);   // Right border (grey)
